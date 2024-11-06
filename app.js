@@ -6,11 +6,7 @@ const port = 3000;
 app.use(express.json());
 // Koneksi ke database PostgreSQL
 const pool = new Pool({
-    host: 'localhost',
-    user: 'postgres',
-    password: 'rajawali',
-    database: 'loker_db',
-    port: 5432,
+    connectionString: process.env.POSTGRES_URL,
 });
 
 // Endpoint untuk mendapatkan semua loker beserta statusnya
