@@ -1,7 +1,6 @@
 const express = require('express');
 const { Pool } = require('pg');
 const app = express();
-const port = 3000;
 
 app.use(express.json());
 
@@ -153,6 +152,4 @@ app.put('/lokers/:id/tap', async (req, res) => {
     }
 });
 
-app.listen(port, () => {
-    console.log(`Server is running on http://localhost:${port}`);
-});
+module.exports = app;
