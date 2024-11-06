@@ -102,7 +102,6 @@ app.put('/lokers/:id/tap', async (req, res) => {
     }
 
     try {
-        // Cek status loker saat ini
         const result = await pool.query('SELECT status, occupied_by FROM loker WHERE loker_id = $1', [lokerId]);
 
         if (result.rows.length === 0) {
@@ -112,7 +111,6 @@ app.put('/lokers/:id/tap', async (req, res) => {
         const currentStatus = result.rows[0].status;
         const currentOccupiedBy = result.rows[0].occupied_by;
 
-        // Cek apakah refid sudah digunakan di loker lain yang statusnya "Occupied"
         if (currentStatus === 'Not Occupied') {
             const refidCheck = await pool.query(
                 'SELECT * FROM loker WHERE occupied_by = $1 AND status = $2', 
