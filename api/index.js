@@ -2,6 +2,9 @@ const express = require('express');
 const { Pool } = require('pg');
 const app = express();
 
+// Menggunakan dotenv untuk membaca file .env
+require('dotenv').config({ path: '.env.development.local' });
+
 app.use(express.json());
 
 // Koneksi ke database PostgreSQL
