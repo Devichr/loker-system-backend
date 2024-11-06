@@ -1,17 +1,16 @@
 {
-  "name": "loker-system-backend",
+  "name": "loker-api",
   "version": "1.0.0",
-  "main": "index.js",
+  "description": "API for loker system",
+  "main": "api/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "vercel dev"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
   "dependencies": {
-    "@vercel/postgres": "^0.10.0",
-    "express": "^4.21.1",
-    "pg": "^8.13.1"
+    "express": "^4.17.1",
+    "pg": "^8.7.1"
+  },
+  "devDependencies": {
+    "vercel": "^23.1.0"
   }
 }
