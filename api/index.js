@@ -21,94 +21,90 @@ pool.connect(err => {
 });
 
 // Endpoint untuk mendapatkan semua loker beserta statusnya
-app.get('/lokers', async (req, res) => {
+app.get('/api/lokers', async (req, res) => {
     try {
         const result = await pool.query('SELECT * FROM loker');
-        res.json(result.rows);
+        res.status(200).json(result.rows);  // 200: OK
     } catch (err) {
         console.error("Database error:", err.message);
-        res.status(500).send({ error: 'Database error' });
+        res.status(500).send({ error: 'Database error' });  // 500: Internal Server Error
     }
 });
 
 // Endpoint untuk mendapatkan status loker tertentu
-app.get('/lokers/:id', async (req, res) => {
+app.get('/api/lokers/:id', async (req, res) => {
     const lokerId = parseInt(req.params.id);
     if (isNaN(lokerId)) {
-        return res.status(400).send({ message: 'Invalid loker ID' });
+        return res.status(400).send({ message: 'Invalid loker ID' });  // 400: Bad Request
     }
 
     try {
         const result = await pool.query('SELECT * FROM loker WHERE loker_id = $1', [lokerId]);
         if (result.rows.length === 0) {
-            return res.status(404).send({ message: 'Loker not found' });
+            return res.status(404).send({ message: 'Loker not found' });  // 404: Not Found
         }
-        res.json(result.rows[0]);
+        res.status(200).json(result.rows[0]);  // 200: OK
     } catch (err) {
         console.error("Database error:", err.message);
-        res.status(500).send({ error: 'Database error' });
+        res.status(500).send({ error: 'Database error' });  // 500: Internal Server Error
     }
 });
 
 // Endpoint untuk menambah loker baru
-app.post('/lokers', async (req, res) => {
-    const { loker_id, status = 'Not Occupied', occupied_by = null } = req.body;
-
-    if (!loker_id || typeof loker_id !== 'number') {
-        return res.status(400).send({ message: 'Invalid or missing loker_id' });
-    }
+app.post('/api/lokers', async (req, res) => {
+    const { status = 'Not Occupied', occupied_by = null } = req.body;
 
     try {
         const result = await pool.query(
-            'INSERT INTO loker (loker_id, status, occupied_by) VALUES ($1, $2, $3) RETURNING *',
-            [loker_id, status, occupied_by]
+            'INSERT INTO loker (status, occupied_by) VALUES ($1, $2) RETURNING *',
+            [status, occupied_by]
         );
-        res.status(201).send({
+        res.status(201).send({  // 201: Created
             message: 'Loker added successfully',
             data: result.rows[0]
         });
     } catch (err) {
         console.error("Database error:", err.message);
-        res.status(500).send({ error: 'Database error' });
+        res.status(500).send({ error: 'Database error' });  // 500: Internal Server Error
     }
 });
 
 // Endpoint untuk menghapus loker
-app.delete('/lokers/:id', async (req, res) => {
+app.delete('/api/lokers/:id', async (req, res) => {
     const lokerId = parseInt(req.params.id);
     if (isNaN(lokerId)) {
-        return res.status(400).send({ message: 'Invalid loker ID' });
+        return res.status(400).send({ message: 'Invalid loker ID' });  // 400: Bad Request
     }
 
     try {
         const result = await pool.query('DELETE FROM loker WHERE loker_id = $1 RETURNING *', [lokerId]);
         if (result.rows.length === 0) {
-            return res.status(404).send({ message: 'Loker not found' });
+            return res.status(404).send({ message: 'Loker not found' });  // 404: Not Found
         }
-        res.send({
+        res.status(200).send({  // 200: OK
             message: 'Loker deleted successfully',
             data: result.rows[0]
         });
     } catch (err) {
         console.error("Database error:", err.message);
-        res.status(500).send({ error: 'Database error' });
+        res.status(500).send({ error: 'Database error' });  // 500: Internal Server Error
     }
 });
 
 // Endpoint untuk mengupdate status loker berdasarkan tap dari refid
-app.put('/lokers/:id/tap', async (req, res) => {
+app.put('/api/lokers/:id/tap', async (req, res) => {
     const lokerId = parseInt(req.params.id);
     const { refid } = req.body;
 
     if (isNaN(lokerId) || !refid) {
-        return res.status(400).send({ message: 'Invalid loker ID or missing refid' });
+        return res.status(400).send({ message: 'Invalid loker ID or missing refid' });  // 400: Bad Request
     }
 
     try {
         const result = await pool.query('SELECT status, occupied_by FROM loker WHERE loker_id = $1', [lokerId]);
 
         if (result.rows.length === 0) {
-            return res.status(404).send({ message: 'Loker not found' });
+            return res.status(404).send({ message: 'Loker not found' });  // 404: Not Found
         }
 
         const currentStatus = result.rows[0].status;
@@ -120,7 +116,7 @@ app.put('/lokers/:id/tap', async (req, res) => {
                 [refid, 'Occupied']
             );
             if (refidCheck.rows.length > 0) {
-                return res.status(403).send({ message: 'This refid is already occupying another loker' });
+                return res.status(403).send({ message: 'This refid is already occupying another loker' });  // 403: Forbidden
             }
         }
 
@@ -131,7 +127,7 @@ app.put('/lokers/:id/tap', async (req, res) => {
             occupiedBy = refid;
         } else if (currentStatus === 'Occupied') {
             if (currentOccupiedBy !== refid) {
-                return res.status(403).send({ message: 'Only the same refid can unlock the loker' });
+                return res.status(403).send({ message: 'Only the same refid can unlock the loker' });  // 403: Forbidden
             }
             newStatus = 'Not Occupied';
             occupiedBy = null;
@@ -142,15 +138,21 @@ app.put('/lokers/:id/tap', async (req, res) => {
             [newStatus, occupiedBy, lokerId]
         );
 
-        res.send({
+        res.status(200).send({  // 200: OK
             message: 'Loker status updated',
             data: updateResult.rows[0]
         });
 
     } catch (err) {
         console.error("Database error:", err.message);
-        res.status(500).send({ error: 'Database error' });
+        res.status(500).send({ error: 'Database error' });  // 500: Internal Server Error
     }
+});
+
+// Menjalankan server Express
+const port = process.env.PORT || 3000;
+app.listen(port, () => {
+    console.log(`Server is running on port ${port}`);
 });
 
 module.exports = app;
