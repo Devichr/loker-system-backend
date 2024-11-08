@@ -1,5 +1,7 @@
 const express = require('express');
 const { Pool } = require('pg');
+const http = require('http');
+const socketIo = require('socket.io'); // Import socket.io
 const app = express();
 
 // Menggunakan dotenv untuk membaca file .env
@@ -18,6 +20,25 @@ pool.connect(err => {
     } else {
         console.log('Connected to PostgreSQL database');
     }
+});
+
+// Membuat server HTTP untuk Socket.io
+const server = http.createServer(app);
+
+// Membuat WebSocket Server dengan Socket.io
+const io = socketIo(server);
+
+// Menangani koneksi WebSocket dengan Socket.io
+io.on('connection', (socket) => {
+    console.log('A new WebSocket connection has been established');
+    
+    // Mengirim pesan ke klien setelah terhubung
+    socket.emit('message', 'Hello! You are connected to the WebSocket server.');
+
+    // Menangani ketika koneksi WebSocket ditutup
+    socket.on('disconnect', () => {
+        console.log('A WebSocket connection has been closed');
+    });
 });
 
 // Endpoint untuk mendapatkan semua loker beserta statusnya
@@ -138,6 +159,13 @@ app.put('/api/lokers/:id/tap', async (req, res) => {
             [newStatus, occupiedBy, lokerId]
         );
 
+        // Mengirimkan perubahan status ke semua klien yang terhubung melalui WebSocket
+        io.emit('loker-status-changed', {
+            loker_id: lokerId,
+            status: newStatus,
+            occupied_by: occupiedBy,
+        });
+
         res.status(200).send({  // 200: OK
             message: 'Loker status updated',
             data: updateResult.rows[0]
@@ -149,9 +177,9 @@ app.put('/api/lokers/:id/tap', async (req, res) => {
     }
 });
 
-// Menjalankan server Express
+// Menjalankan server HTTP dan WebSocket (Socket.io)
 const port = process.env.PORT || 3000;
-app.listen(port, () => {
+server.listen(port, () => {
     console.log(`Server is running on port ${port}`);
 });
 
