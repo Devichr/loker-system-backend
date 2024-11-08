@@ -26,7 +26,12 @@ pool.connect(err => {
 const server = http.createServer(app);
 
 // Membuat WebSocket Server dengan Socket.io
-const io = socketIo(server);
+const io = socketIo(server, {
+    cors: {
+      origin: '*', // Ganti dengan domain frontend Anda
+      methods: ['GET', 'POST'],
+    }
+  });
 
 // Menangani koneksi WebSocket dengan Socket.io
 io.on('connection', (socket) => {
