@@ -1,7 +1,7 @@
 const express = require('express');
 const { Pool } = require('pg');
 const http = require('http');
-const socketIo = require('socket.io'); // Import socket.io
+const socketIo = require('socket.io') ; // Import socket.io
 const app = express();
 
 // Menggunakan dotenv untuk membaca file .env
